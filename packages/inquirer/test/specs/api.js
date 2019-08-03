@@ -2,12 +2,12 @@
  * Test Prompt public APIs
  */
 
-var expect = require('chai').expect;
-var _ = require('lodash');
-var fixtures = require('../helpers/fixtures');
-var ReadlineStub = require('../helpers/readline');
-var inquirer = require('../../lib/inquirer');
-var autosubmit = require('../helpers/events').autosubmit;
+import { expect } from 'chai';
+import { each, clone } from 'lodash';
+import fixtures from '../helpers/fixtures';
+import ReadlineStub from '../helpers/readline';
+import { createPromptModule, Separator, prompt as _prompt } from '../../lib/inquirer';
+import { autosubmit } from '../helpers/events';
 
 // Define prompts and their public API
 var prompts = [
@@ -100,7 +100,7 @@ var tests = {
       });
 
       it('should pass previous answers to the prompt filter function', function() {
-        var prompt = inquirer.createPromptModule();
+        var prompt = createPromptModule();
         var questions = [
           {
             type: 'confirm',
@@ -255,7 +255,7 @@ var tests = {
       });
 
       it('should pass previous answers to the prompt validation function', function() {
-        var prompt = inquirer.createPromptModule();
+        var prompt = createPromptModule();
         var questions = [
           {
             type: 'confirm',
@@ -345,7 +345,7 @@ var tests = {
 
         prompt.run();
 
-        _.each(choices.filter(inquirer.Separator.exclude), choice => {
+        each(choices.filter(Separator.exclude), choice => {
           expect(this.rl.output.__raw__).to.contain(choice.name);
         });
       });
@@ -366,15 +366,15 @@ var tests = {
 
 // Run tests
 describe('Prompt public APIs', function() {
-  _.each(prompts, function(detail) {
+  each(prompts, function(detail) {
     describe('on ' + detail.name + ' prompt', function() {
       beforeEach(function() {
-        this.fixture = _.clone(fixtures[detail.name]);
-        this.Prompt = inquirer.prompt.prompts[detail.name];
+        this.fixture = clone(fixtures[detail.name]);
+        this.Prompt = _prompt.prompts[detail.name];
         this.rl = new ReadlineStub();
       });
 
-      _.each(detail.apis, function(apiName) {
+      each(detail.apis, function(apiName) {
         tests[apiName](detail.name);
       });
     });

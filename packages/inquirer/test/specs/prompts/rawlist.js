@@ -1,14 +1,14 @@
-var expect = require('chai').expect;
-var _ = require('lodash');
-var ReadlineStub = require('../../helpers/readline');
-var fixtures = require('../../helpers/fixtures');
+import { expect } from 'chai';
+import { clone } from 'lodash';
+import ReadlineStub from '../../helpers/readline';
+import { rawlist } from '../../helpers/fixtures';
 
-var Rawlist = require('../../../lib/prompts/rawlist');
+import Rawlist from '../../../lib/prompts/rawlist';
 
 describe('`rawlist` prompt', function() {
   beforeEach(function() {
     this.rl = new ReadlineStub();
-    this.fixture = _.clone(fixtures.rawlist);
+    this.fixture = clone(rawlist);
     this.rawlist = new Rawlist(this.fixture, this.rl);
   });
 

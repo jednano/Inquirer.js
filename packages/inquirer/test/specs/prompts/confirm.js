@@ -1,19 +1,19 @@
-var expect = require('chai').expect;
-var _ = require('lodash');
-var ReadlineStub = require('../../helpers/readline');
-var fixtures = require('../../helpers/fixtures');
+import { expect } from 'chai';
+import { clone } from 'lodash';
+import ReadlineStub from '../../helpers/readline';
+import { confirm } from '../../helpers/fixtures';
 
-var Confirm = require('../../../lib/prompts/confirm');
+import Confirm, { prototype } from '../../../lib/prompts/confirm';
 
 describe('`confirm` prompt', function() {
   beforeEach(function() {
-    this.fixture = _.clone(fixtures.confirm);
+    this.fixture = clone(confirm);
     this.rl = new ReadlineStub();
     this.confirm = new Confirm(this.fixture, this.rl);
   });
 
   afterEach(function() {
-    Confirm.prototype.write = this._write;
+    prototype.write = this._write;
   });
 
   it('should default to true', function(done) {

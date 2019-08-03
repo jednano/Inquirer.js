@@ -2,7 +2,14 @@
   "name": "@inquirer/select",
   "version": "0.0.6-alpha.0",
   "description": "Inquirer select/list prompt",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "../../node_modules/.bin/tsc"
+  },
+  "files": [
+    "dist/**"
+  ],
   "repository": "SBoudrias/Inquirer.js",
   "keywords": [
     "cli",
@@ -14,8 +21,10 @@
   "license": "MIT",
   "dependencies": {
     "@inquirer/core": "^0.0.6-alpha.0",
-    "chalk": "^2.4.1",
-    "figures": "^3.0.0"
+    "ansi-escapes": "^4.2.1",
+    "chalk": "^2.4.2",
+    "figures": "^3.0.0",
+    "tslib": "^1.10.0"
   },
   "publishConfig": {
     "access": "public"

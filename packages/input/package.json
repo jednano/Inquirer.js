@@ -2,7 +2,14 @@
   "name": "@inquirer/input",
   "version": "0.0.6-alpha.0",
   "description": "Inquirer input text prompt",
-  "main": "index.js",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "../../node_modules/.bin/tsc"
+  },
+  "files": [
+    "dist/**"
+  ],
   "repository": "SBoudrias/Inquirer.js",
   "keywords": [
     "cli",
@@ -14,7 +21,8 @@
   "license": "MIT",
   "dependencies": {
     "@inquirer/core": "^0.0.6-alpha.0",
-    "chalk": "^2.4.1"
+    "chalk": "^2.4.2",
+    "tslib": "^1.10.0"
   },
   "publishConfig": {
     "access": "public"

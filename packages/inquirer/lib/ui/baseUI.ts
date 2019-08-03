@@ -1,0 +1,77 @@
+import { extend, omit } from 'lodash';
+import MuteStream = require('mute-stream');
+import { createInterface } from 'readline';
+
+/**
+ * Base interface class other can inherits from
+ */
+export default class UI {
+  public rl: any
+  public activePrompt: any
+  constructor(opt: any = {}) {
+    // Instantiate the Readline interface
+    // @Note: Don't reassign if already present (allow test to override the Stream)
+    if (!this.rl) {
+      this.rl = createInterface(setupReadlineOptions(opt));
+    }
+
+    this.rl.resume();
+
+    this.onForceClose = this.onForceClose.bind(this);
+
+    // Make sure new prompt start on a newline when closing
+    process.on('exit', this.onForceClose);
+
+    // Terminate process on SIGINT (which will call process.on('exit') in return)
+    this.rl.on('SIGINT', this.onForceClose);
+  }
+
+  /**
+   * Handle the ^C exit
+   */
+  public onForceClose() {
+    this.close();
+    process.kill(process.pid, 'SIGINT');
+    console.log('');
+  }
+
+  /**
+   * Close the interface and cleanup listeners
+   */
+  public close() {
+    // Remove events listeners
+    this.rl.removeListener('SIGINT', this.onForceClose);
+    process.removeListener('exit', this.onForceClose);
+
+    this.rl.output.unmute();
+
+    if (this.activePrompt && typeof this.activePrompt.close === 'function') {
+      this.activePrompt.close();
+    }
+
+    // Close the readline
+    this.rl.output.end();
+    this.rl.pause();
+    this.rl.close();
+  }
+}
+
+function setupReadlineOptions(opt: any) {
+
+  // Default `input` to stdin
+  var input = opt.input || process.stdin;
+
+  // Add mute capabilities to the output
+  var ms = new MuteStream();
+  ms.pipe(opt.output || process.stdout);
+  var output = ms;
+
+  return extend(
+    {
+      terminal: true,
+      input,
+      output,
+    },
+    omit(opt, ['input', 'output'])
+  );
+}

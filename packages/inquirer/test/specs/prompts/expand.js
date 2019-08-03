@@ -1,13 +1,13 @@
-var expect = require('chai').expect;
-var _ = require('lodash');
-var ReadlineStub = require('../../helpers/readline');
-var fixtures = require('../../helpers/fixtures');
+import { expect } from 'chai';
+import { clone } from 'lodash';
+import ReadlineStub from '../../helpers/readline';
+import { expand } from '../../helpers/fixtures';
 
-var Expand = require('../../../lib/prompts/expand');
+import Expand from '../../../lib/prompts/expand';
 
 describe('`expand` prompt', function() {
   beforeEach(function() {
-    this.fixture = _.clone(fixtures.expand);
+    this.fixture = clone(expand);
     this.rl = new ReadlineStub();
     this.expand = new Expand(this.fixture, this.rl);
   });

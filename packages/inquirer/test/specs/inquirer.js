@@ -2,16 +2,21 @@
  * Inquirer public API test
  */
 
-var expect = require('chai').expect;
-var sinon = require('sinon');
-var _ = require('lodash');
-var { Observable } = require('rxjs');
-var inquirer = require('../../lib/inquirer');
-var autosubmit = require('../helpers/events').autosubmit;
+import { expect } from 'chai';
+import { stub, spy as _spy, assert } from 'sinon';
+import { noop } from 'lodash';
+import { Observable } from 'rxjs';
+import {
+  createPromptModule,
+  registerPrompt,
+  prompt as _prompt,
+  restoreDefaultPrompts
+} from '../../lib/inquirer';
+import { autosubmit } from '../helpers/events';
 
 describe('inquirer.prompt', function() {
   beforeEach(function() {
-    this.prompt = inquirer.createPromptModule();
+    this.prompt = createPromptModule();
   });
 
   it("should close and create a new readline instances each time it's called", function() {
@@ -128,7 +133,7 @@ describe('inquirer.prompt', function() {
           return true;
         }
       };
-      this.run = sinon.stub().returns(Promise.resolve());
+      this.run = stub().returns(Promise.resolve());
       expect(params.message).to.equal(stubMessage);
     });
 
@@ -168,7 +173,7 @@ describe('inquirer.prompt', function() {
           return true;
         }
       };
-      this.run = sinon.stub().returns(Promise.resolve());
+      this.run = stub().returns(Promise.resolve());
       expect(params.message).to.equal(stubMessage);
       done();
     });
@@ -205,7 +210,7 @@ describe('inquirer.prompt', function() {
           return true;
         }
       };
-      this.run = sinon.stub().returns(Promise.resolve());
+      this.run = stub().returns(Promise.resolve());
       expect(params.default).to.equal(stubDefault);
       done();
     });
@@ -272,7 +277,7 @@ describe('inquirer.prompt', function() {
 
   it('should pass previous answers to the prompt constructor', function(done) {
     this.prompt.registerPrompt('stub', function(params, rl, answers) {
-      this.run = sinon.stub().returns(Promise.resolve());
+      this.run = stub().returns(Promise.resolve());
       expect(answers.name1).to.equal('bar');
       done();
     });
@@ -298,7 +303,7 @@ describe('inquirer.prompt', function() {
   it('should parse `choices` if passed as a function', function(done) {
     var stubChoices = ['foo', 'bar'];
     this.prompt.registerPrompt('stub', function(params) {
-      this.run = sinon.stub().returns(Promise.resolve());
+      this.run = stub().returns(Promise.resolve());
       this.opt = {
         when: function() {
           return true;
@@ -364,13 +369,13 @@ describe('inquirer.prompt', function() {
     ];
 
     var promise = this.prompt(prompts);
-    var spy = sinon.spy();
+    var spy = _spy();
     promise.ui.process.subscribe(
       spy,
       function() {},
       function() {
-        sinon.assert.calledWith(spy, { name: 'name1', answer: 'bar' });
-        sinon.assert.calledWith(spy, { name: 'name', answer: 'doe' });
+        assert.calledWith(spy, { name: 'name1', answer: 'bar' });
+        assert.calledWith(spy, { name: 'name', answer: 'doe' });
         done();
       }
     );
@@ -617,34 +622,34 @@ describe('inquirer.prompt', function() {
   describe('#registerPrompt()', function() {
     it('register new prompt types', function(done) {
       var questions = [{ type: 'foo', message: 'something' }];
-      inquirer.registerPrompt('foo', function(question, rl, answers) {
+      registerPrompt('foo', function(question, rl, answers) {
         expect(question).to.eql(questions[0]);
         expect(answers).to.eql({});
-        this.run = sinon.stub().returns(Promise.resolve());
+        this.run = stub().returns(Promise.resolve());
         done();
       });
 
-      inquirer.prompt(questions, _.noop);
+      _prompt(questions, noop);
     });
 
     it('overwrite default prompt types', function(done) {
       var questions = [{ type: 'confirm', message: 'something' }];
-      inquirer.registerPrompt('confirm', function() {
-        this.run = sinon.stub().returns(Promise.resolve());
+      registerPrompt('confirm', function() {
+        this.run = stub().returns(Promise.resolve());
         done();
       });
 
-      inquirer.prompt(questions, _.noop);
-      inquirer.restoreDefaultPrompts();
+      _prompt(questions, noop);
+      restoreDefaultPrompts();
     });
   });
 
   describe('#restoreDefaultPrompts()', function() {
     it('restore default prompts', function() {
-      var ConfirmPrompt = inquirer.prompt.prompts.confirm;
-      inquirer.registerPrompt('confirm', _.noop);
-      inquirer.restoreDefaultPrompts();
-      expect(ConfirmPrompt).to.equal(inquirer.prompt.prompts.confirm);
+      var ConfirmPrompt = _prompt.prompts.confirm;
+      registerPrompt('confirm', noop);
+      restoreDefaultPrompts();
+      expect(ConfirmPrompt).to.equal(_prompt.prompts.confirm);
     });
   });
 
@@ -655,7 +660,7 @@ describe('inquirer.prompt', function() {
       return [0];
     };
 
-    var prompt = inquirer.createPromptModule();
+    var prompt = createPromptModule();
 
     var prompts = [
       {

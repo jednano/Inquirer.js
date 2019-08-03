@@ -1,10 +1,10 @@
-var stripAnsi = require('strip-ansi');
-var expect = require('chai').expect;
-var _ = require('lodash');
-var ReadlineStub = require('../../helpers/readline');
-var fixtures = require('../../helpers/fixtures');
+import stripAnsi from 'strip-ansi';
+import { expect } from 'chai';
+import { clone } from 'lodash';
+import ReadlineStub from '../../helpers/readline';
+import { password as _password } from '../../helpers/fixtures';
 
-var Password = require('../../../lib/prompts/password');
+import Password from '../../../lib/prompts/password';
 
 function testMasking(rl, mask) {
   return function(answer) {
@@ -20,7 +20,7 @@ function testMasking(rl, mask) {
 
 describe('`password` prompt', function() {
   beforeEach(function() {
-    this.fixture = _.clone(fixtures.password);
+    this.fixture = clone(_password);
     this.rl = new ReadlineStub();
   });
 

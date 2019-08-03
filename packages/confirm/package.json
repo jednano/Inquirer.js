@@ -2,6 +2,14 @@
   "name": "@inquirer/confirm",
   "version": "0.0.5-alpha.0",
   "description": "Inquirer confirm prompt",
+  "main": "dist/index.js",
+  "types": "dist/index.d.ts",
+  "scripts": {
+    "build": "../../node_modules/.bin/tsc"
+  },
+  "files": [
+    "dist/**"
+  ],
   "keywords": [
     "cli",
     "command",
@@ -14,12 +22,12 @@
   "author": "Simon Boudrias <admin@simonboudrias.com>",
   "homepage": "https://github.com/SBoudrias/Inquirer.js#readme",
   "license": "MIT",
-  "main": "index.js",
   "repository": "SBoudrias/Inquirer.js",
   "dependencies": {
     "@inquirer/core": "^0.0.6-alpha.0",
     "@inquirer/input": "^0.0.6-alpha.0",
-    "chalk": "^2.4.1"
+    "chalk": "^2.4.2",
+    "tslib": "^1.10.0"
   },
   "publishConfig": {
     "access": "public"
