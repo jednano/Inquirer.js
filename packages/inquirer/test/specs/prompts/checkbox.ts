@@ -5,7 +5,7 @@ import { checkbox } from '../../helpers/fixtures';
 
 import Checkbox from '../../../lib/prompts/checkbox';
 
-type Context = {
+interface Context {
   fixture: typeof checkbox;
   rl: ReadlineStub;
   checkbox: Checkbox;
@@ -61,7 +61,7 @@ describe('`checkbox` prompt', function() {
   it('provide an array of checked choice to validate', function(this: Context) {
     this.fixture.choices = [
       { name: '1', checked: true },
-      { name: '2', checked: 1 as any },
+      { name: '2', checked: 1 },
       { name: '3', checked: false }
     ];
     this.fixture.validate = function(answer) {

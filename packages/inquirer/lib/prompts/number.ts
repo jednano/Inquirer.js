@@ -7,7 +7,7 @@ import { IBasePrompt } from './base';
 
 export interface INumberPrompt
   extends Pick<
-    IBasePrompt<string>,
+    IBasePrompt<number>,
     'name' | 'message' | 'default' | 'filter' | 'validate' | 'transformer'
   > {
   type: 'number';
@@ -16,7 +16,7 @@ export interface INumberPrompt
 /**
  * Extention of the Input prompt specifically for use with number inputs.
  */
-export default class NumberPrompt extends Input {
+export default class NumberPrompt extends Input<number> {
   filterInput(input: any) {
     if (input && typeof input === 'string') {
       input = input.trim();

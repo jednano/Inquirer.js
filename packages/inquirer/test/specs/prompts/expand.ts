@@ -5,35 +5,41 @@ import { expand } from '../../helpers/fixtures';
 
 import Expand from '../../../lib/prompts/expand';
 
+interface Context {
+  fixture: typeof expand;
+  rl: any;
+  expand: Expand;
+}
+
 describe('`expand` prompt', function() {
-  beforeEach(function() {
+  beforeEach(function(this: Context) {
     this.fixture = clone(expand);
     this.rl = new ReadlineStub();
     this.expand = new Expand(this.fixture, this.rl);
   });
 
-  it('should throw if `key` is missing', function() {
+  it('should throw if `key` is missing', function(this: Context) {
     expect(() => {
       this.fixture.choices = ['a', 'a'];
       return new Expand(this.fixture, this.rl);
     }).to.throw(/Format error/);
   });
 
-  it('should throw if `key` is duplicate', function() {
+  it('should throw if `key` is duplicate', function(this: Context) {
     expect(() => {
       this.fixture.choices = [{ key: 'a', name: 'foo' }, { key: 'a', name: 'foo' }];
       return new Expand(this.fixture, this.rl);
     }).to.throw(/Duplicate key error/);
   });
 
-  it('should throw if `key` is `h`', function() {
+  it('should throw if `key` is `h`', function(this: Context) {
     expect(() => {
       this.fixture.choices = [{ key: 'h', name: 'foo' }];
       return new Expand(this.fixture, this.rl);
     }).to.throw(/Reserved key error/);
   });
 
-  it('should allow false as a value', function() {
+  it('should allow false as a value', function(this: Context) {
     var promise = this.expand.run();
 
     this.rl.emit('line', 'd');
@@ -42,7 +48,7 @@ describe('`expand` prompt', function() {
     });
   });
 
-  it('pass the value as answer, and display short on the prompt', function() {
+  it('pass the value as answer, and display short on the prompt', async function(this: Context) {
     this.fixture.choices = [
       { key: 'a', name: 'A Name', value: 'a value', short: 'ShortA' },
       { key: 'b', name: 'B Name', value: 'b value', short: 'ShortB' }
@@ -51,13 +57,12 @@ describe('`expand` prompt', function() {
     var promise = prompt.run();
     this.rl.emit('line', 'b');
 
-    return promise.then(answer => {
-      expect(answer).to.equal('b value');
-      expect(this.rl.output.__raw__).to.match(/ShortB/);
-    });
+    const answer = await promise;
+    expect(answer).to.equal('b value');
+    expect(this.rl.output.__raw__).to.match(/ShortB/);
   });
 
-  it('should use a string the `default` value', function(done) {
+  it('should use a string the `default` value', function(this: Context, done) {
     this.fixture.default = 'chile';
     this.expand = new Expand(this.fixture, this.rl);
 
@@ -68,7 +73,7 @@ describe('`expand` prompt', function() {
     this.rl.emit('line');
   });
 
-  it('should use the `default` argument value', function(done) {
+  it('should use the `default` argument value', function(this: Context, done) {
     this.fixture.default = 1;
     this.expand = new Expand(this.fixture, this.rl);
 
@@ -79,7 +84,7 @@ describe('`expand` prompt', function() {
     this.rl.emit('line');
   });
 
-  it('should return the user input', function(done) {
+  it('should return the user input', function(this: Context, done) {
     this.expand.run().then(answer => {
       expect(answer).to.equal('bar');
       done();
@@ -87,7 +92,7 @@ describe('`expand` prompt', function() {
     this.rl.emit('line', 'b');
   });
 
-  it('should strip the user input', function(done) {
+  it('should strip the user input', function(this: Context, done) {
     this.expand.run().then(answer => {
       expect(answer).to.equal('bar');
       done();
@@ -95,7 +100,7 @@ describe('`expand` prompt', function() {
     this.rl.emit('line', ' b ');
   });
 
-  it('should have help option', function(done) {
+  it('should have help option', function(this: Context, done) {
     this.expand.run().then(answer => {
       expect(this.rl.output.__raw__).to.match(/a\) acab/);
       expect(this.rl.output.__raw__).to.match(/b\) bar/);
@@ -106,7 +111,7 @@ describe('`expand` prompt', function() {
     this.rl.emit('line', 'c');
   });
 
-  it('should not allow invalid command', function() {
+  it('should not allow invalid command', function(this: Context) {
     var self = this;
     var promise = this.expand.run();
 
@@ -117,7 +122,7 @@ describe('`expand` prompt', function() {
     return promise;
   });
 
-  it('should display and capitalize the default choice `key`', function() {
+  it('should display and capitalize the default choice `key`', function(this: Context) {
     this.fixture.default = 1;
     this.expand = new Expand(this.fixture, this.rl);
 
@@ -125,7 +130,7 @@ describe('`expand` prompt', function() {
     expect(this.rl.output.__raw__).to.contain('(aBcdh)');
   });
 
-  it('should display and capitalize the default choice by name value', function() {
+  it('should display and capitalize the default choice by name value', function(this: Context) {
     this.fixture.default = 'chile';
     this.expand = new Expand(this.fixture, this.rl);
 
@@ -141,7 +146,7 @@ describe('`expand` prompt', function() {
     expect(this.rl.output.__raw__).to.contain('(abcdH)');
   });
 
-  it('should display and capitalize the default choice H (Help) `key` if none provided', function() {
+  it('should display and capitalize the default choice H (Help) `key` if none provided', function(this: Context) {
     delete this.fixture.default;
     this.expand = new Expand(this.fixture, this.rl);
     this.expand.run();
@@ -149,7 +154,7 @@ describe('`expand` prompt', function() {
     expect(this.rl.output.__raw__).to.contain('(abcdH)');
   });
 
-  it("should 'autocomplete' the user input", function(done) {
+  it("should 'autocomplete' the user input", function(this: Context, done) {
     this.expand = new Expand(this.fixture, this.rl);
     this.expand.run();
     this.rl.line = 'a';

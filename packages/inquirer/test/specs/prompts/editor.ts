@@ -5,8 +5,14 @@ import { editor } from '../../helpers/fixtures';
 
 import Editor from '../../../lib/prompts/editor';
 
+interface Context {
+  previousVisual: typeof process.env.VISUAL;
+  fixture: typeof editor;
+  rl: any;
+}
+
 describe('`editor` prompt', function() {
-  beforeEach(function() {
+  beforeEach(function(this: Context) {
     this.previousVisual = process.env.VISUAL;
     // Writes the word "testing" to the file
     process.env.VISUAL = 'node ./test/bin/write.js testing';
@@ -14,18 +20,17 @@ describe('`editor` prompt', function() {
     this.rl = new ReadlineStub();
   });
 
-  afterEach(function() {
+  afterEach(function(this: Context) {
     process.env.VISUAL = this.previousVisual;
   });
 
-  it('should retrieve temporary files contents', function() {
+  it('should retrieve temporary files contents', async function(this: Context) {
     var prompt = new Editor(this.fixture, this.rl);
 
     var promise = prompt.run();
     this.rl.emit('line', '');
 
-    return promise.then(answer => {
-      return expect(answer).to.equal('testing');
-    });
+    const answer = await promise;
+    return expect(answer).to.equal('testing');
   });
 });

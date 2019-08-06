@@ -12,9 +12,11 @@ import Paginator from '../utils/paginator';
 import Choices from '../objects/choices';
 
 export interface IExpandPrompt
-  extends Pick<IBasePrompt<number>, 'name' | 'message' | 'choices' | 'default'> {
+  extends Pick<IBasePrompt<number | string>, 'name' | 'message' | 'choices' | 'default'> {
   type: 'expand';
 }
+
+type IExpandQuestion = Omit<IExpandPrompt, 'type'> & { type?: 'expand' };
 
 type TChoices = Choices<{
   /**
@@ -25,11 +27,20 @@ type TChoices = Choices<{
 
 export default class ExpandPrompt extends Base<number | string, TChoices> {
   public paginator: Paginator;
+
   public answer: any;
+
   public keypressObs: any;
+
   public selectedKey: any;
+
   public rawDefault: any;
-  constructor(questions: any[], rl: any, answers: any[]) {
+
+  constructor(
+    questions: IExpandQuestion | IExpandQuestion[],
+    rl?: any,
+    answers?: Record<keyof typeof questions, any>
+  ) {
     super(questions, rl, answers);
 
     if (!this.opt.choices) {

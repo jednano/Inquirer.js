@@ -13,29 +13,32 @@ import Paginator from '../utils/paginator';
 import Choices from '../objects/choices';
 import Separator from '../objects/separator';
 
-interface ICheckboxBase
+export interface ICheckboxPrompt
   extends Pick<
     IBasePrompt<any[]>,
     'name' | 'message' | 'choices' | 'filter' | 'validate' | 'default' | 'checked'
-  > {}
-
-export interface ICheckboxPrompt extends ICheckboxBase {
+  > {
   type: 'checkbox';
 }
 
 export type CheckboxItem =
-  | (Omit<ICheckboxBase, 'message'> & { type?: 'checkbox' })
+  | (Omit<ICheckboxPrompt, 'type' | 'message'> & { type?: 'checkbox' })
   | Separator;
 
 export default class CheckboxPrompt extends Base<any[]> {
   public pointer = 0;
+
   public paginator: Paginator;
+
   public firstRender?: boolean;
+
   public spaceKeyPressed?: boolean;
+
   public selection: (string | undefined)[] = [];
+
   constructor(
     questions: CheckboxItem | CheckboxItem[],
-    rl: any,
+    rl?: any,
     answers?: Record<keyof typeof questions, any>
   ) {
     super(questions, rl, answers);

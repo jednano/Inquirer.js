@@ -5,13 +5,18 @@ import { input as _input } from '../../helpers/fixtures';
 
 import Input from '../../../lib/prompts/input';
 
+interface Context {
+  fixture: typeof _input;
+  rl: any;
+}
+
 describe('`input` prompt', function() {
-  beforeEach(function() {
+  beforeEach(function(this: Context) {
     this.fixture = clone(_input);
     this.rl = new ReadlineStub();
   });
 
-  it('should use raw value from the user', function(done) {
+  it('should use raw value from the user', function(this: Context, done) {
     var input = new Input(this.fixture, this.rl);
 
     input.run().then(answer => {
@@ -22,7 +27,7 @@ describe('`input` prompt', function() {
     this.rl.emit('line', 'Inquirer');
   });
 
-  it('should output filtered value', function() {
+  it('should output filtered value', async function(this: Context) {
     this.fixture.filter = function() {
       return 'pass';
     };
@@ -31,12 +36,11 @@ describe('`input` prompt', function() {
     var promise = prompt.run();
     this.rl.emit('line', '');
 
-    return promise.then(() => {
-      expect(this.rl.output.__raw__).to.contain('pass');
-    });
+    await promise;
+    expect(this.rl.output.__raw__).to.contain('pass');
   });
 
-  it('should apply the provided transform to the value', function(done) {
+  it('should apply the provided transform to the value', function(this: Context, done) {
     this.fixture.transformer = function(value) {
       return value
         .split('')
@@ -56,7 +60,7 @@ describe('`input` prompt', function() {
     }, 10);
   });
 
-  it('should use the answers object in the provided transformer', function(done) {
+  it('should use the answers object in the provided transformer', function(this: Context, done) {
     this.fixture.transformer = function(value, answers) {
       return answers.capitalize ? value.toUpperCase() : value;
     };
@@ -77,7 +81,7 @@ describe('`input` prompt', function() {
     }, 200);
   });
 
-  it('should use the flags object in the provided transformer', function(done) {
+  it('should use the flags object in the provided transformer', function(this: Context, done) {
     this.fixture.transformer = function(value, answers, flags) {
       var text = answers.capitalize ? value.toUpperCase() : value;
       if (flags.isFinal) return text + '!';

@@ -3,16 +3,22 @@ import { clone } from 'lodash';
 import ReadlineStub from '../../helpers/readline';
 import { rawlist } from '../../helpers/fixtures';
 
-import Rawlist from '../../../lib/prompts/rawlist';
+import RawList from '../../../lib/prompts/rawlist';
+
+interface Context {
+  rl: any;
+  fixture: typeof rawlist;
+  rawlist: RawList;
+}
 
 describe('`rawlist` prompt', function() {
-  beforeEach(function() {
+  beforeEach(function(this: Context) {
     this.rl = new ReadlineStub();
     this.fixture = clone(rawlist);
-    this.rawlist = new Rawlist(this.fixture, this.rl);
+    this.rawlist = new RawList(this.fixture, this.rl);
   });
 
-  it('should default to first choice', function(done) {
+  it('should default to first choice', function(this: Context, done) {
     this.rawlist.run().then(answer => {
       expect(answer).to.equal('foo');
       done();
@@ -21,7 +27,7 @@ describe('`rawlist` prompt', function() {
     this.rl.emit('line');
   });
 
-  it('should select given index', function(done) {
+  it('should select given index', function(this: Context, done) {
     this.rawlist.run().then(answer => {
       expect(answer).to.equal('bar');
       done();
@@ -44,15 +50,15 @@ describe('`rawlist` prompt', function() {
 
   it('should require a choices array', function() {
     var mkPrompt = function() {
-      return new Rawlist({ name: 'foo', message: 'bar' });
+      return new RawList({ name: 'foo', message: 'bar' });
     };
 
     expect(mkPrompt).to.throw(/choices/);
   });
 
-  it('should allow a default index', function(done) {
+  it('should allow a default index', function(this: Context, done) {
     this.fixture.default = 1;
-    var list = new Rawlist(this.fixture, this.rl);
+    var list = new RawList(this.fixture, this.rl);
 
     list.run().then(answer => {
       expect(answer).to.equal('bar');
@@ -62,9 +68,9 @@ describe('`rawlist` prompt', function() {
     this.rl.emit('line');
   });
 
-  it("shouldn't allow an invalid index as default", function(done) {
+  it("shouldn't allow an invalid index as default", function(this: Context, done) {
     this.fixture.default = 4;
-    var list = new Rawlist(this.fixture, this.rl);
+    var list = new RawList(this.fixture, this.rl);
 
     list.run().then(answer => {
       expect(answer).to.equal('foo');
@@ -74,9 +80,9 @@ describe('`rawlist` prompt', function() {
     this.rl.emit('line');
   });
 
-  it('should allow string default being the value', function(done) {
+  it('should allow string default being the value', function(this: Context, done) {
     this.fixture.default = 'bum';
-    var list = new Rawlist(this.fixture, this.rl);
+    var list = new RawList(this.fixture, this.rl);
 
     list.run().then(answer => {
       expect(answer).to.equal('bum');
@@ -86,9 +92,9 @@ describe('`rawlist` prompt', function() {
     this.rl.emit('line');
   });
 
-  it("shouldn't allow an invalid string default to change position", function(done) {
+  it("shouldn't allow an invalid string default to change position", function(this: Context, done) {
     this.fixture.default = 'bumby';
-    var list = new Rawlist(this.fixture, this.rl);
+    var list = new RawList(this.fixture, this.rl);
 
     list.run().then(answer => {
       expect(answer).to.equal('foo');

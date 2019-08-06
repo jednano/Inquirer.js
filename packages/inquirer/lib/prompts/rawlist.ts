@@ -12,18 +12,28 @@ import Choices from '../objects/choices';
 
 export interface IRawListPrompt
   extends Pick<
-    IBasePrompt<string>,
+    IBasePrompt<string | number>,
     'name' | 'message' | 'choices' | 'default' | 'filter'
   > {
   type: 'rawlist';
 }
 
-export default class RawListPrompt extends Base<string> {
+type RawListItem = Omit<IRawListPrompt, 'type'>;
+
+export default class RawList extends Base<string | number> {
   public selected?: number;
+
   public rawDefault: number;
+
   public answer: any;
+
   public paginator: Paginator;
-  constructor(questions: any[], rl: any, answers: any[]) {
+
+  constructor(
+    questions: RawListItem | RawListItem[],
+    rl?: any,
+    answers?: Record<keyof typeof questions, any>
+  ) {
     super(questions, rl, answers);
 
     if (!this.opt.choices) {

@@ -13,8 +13,14 @@ export interface IConfirmPrompt
   type: 'confirm';
 }
 
+export type ConfirmQuestion = Omit<IConfirmPrompt, 'type'> & { type?: 'confirm' };
+
 export default class ConfirmPrompt extends Base<boolean> {
-  constructor(questions: any[], rl: any, answers: any[]) {
+  constructor(
+    questions: ConfirmQuestion | ConfirmQuestion[],
+    rl?: any,
+    answers?: Record<keyof typeof questions, any>
+  ) {
     super(questions, rl, answers);
 
     var rawDefault = true;

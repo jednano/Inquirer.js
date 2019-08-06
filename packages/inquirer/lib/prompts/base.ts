@@ -16,18 +16,18 @@ export interface IBasePrompt<T, TChoices extends Choices = Choices> {
    * @default 'input'
    */
   type?:
-  | 'checkbox'
-  | 'confirm'
-  | 'editor'
-  | 'expand'
-  | 'input'
-  | 'list'
-  | 'number'
-  | 'password'
-  | 'rawlist';
+    | 'checkbox'
+    | 'confirm'
+    | 'editor'
+    | 'expand'
+    | 'input'
+    | 'list'
+    | 'number'
+    | 'password'
+    | 'rawlist';
   name: string;
   message: string;
-  default?: T
+  default?: T;
   /**
    * Receive the user input and answers hash. Should return true if the value
    * is valid, and an error message (String) otherwise. If false is returned,
@@ -54,22 +54,33 @@ export interface IBasePrompt<T, TChoices extends Choices = Choices> {
    * Character used to mask input.
    * @default an asterisk
    */
-  mask?: string
+  mask?: string | true;
   /**
    * Checked by default.
    */
-  checked?: boolean
+  checked?: boolean;
 }
 
 export default class Prompt<T, TChoices extends Choices = Choices> {
   protected opt: IBasePrompt<T, TChoices>;
+
   public rl: any;
+
   public screen: ScreenManager;
+
   public status: 'pending' | 'answered' | 'expanded' = 'pending';
+
   public message?: string;
+
   public name?: string;
+
   public done: (...args: any[]) => void = noop;
-  constructor(question: any, rl: any, public answers?: Record<keyof typeof question, any>) {
+
+  constructor(
+    question: any,
+    rl?: any,
+    public answers?: Record<keyof typeof question, any>
+  ) {
     // Set defaults prompt options
     this.opt = defaults(clone(question), {
       validate: () => true,

@@ -6,8 +6,9 @@ import chalk from 'chalk';
 import { map, takeUntil } from 'rxjs/operators';
 import Base, { IBasePrompt } from './base';
 import observe from '../utils/events';
+import { Key } from 'readline';
 
-function mask(input: any, maskChar?: string) {
+function mask(input: any, maskChar?: string | true) {
   input = String(input);
   maskChar = typeof maskChar === 'string' ? maskChar : '*';
   if (input.length === 0) {
@@ -26,7 +27,8 @@ export interface IPasswordPrompt
 }
 
 export default class PasswordPrompt extends Base<string> {
-  public answer: any
+  public answer: any;
+
   /**
    * Start the Inquiry session
    * @param cb Callback when prompt is done
@@ -103,7 +105,7 @@ export default class PasswordPrompt extends Base<string> {
     this.render(state.isValid);
   }
 
-  public onKeypress() {
+  public onKeypress(_event: { key: Key }) {
     // If user press a key, just clear the default value
     if (this.opt.default) {
       this.opt.default = undefined;

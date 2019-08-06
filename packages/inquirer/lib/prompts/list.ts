@@ -15,17 +15,26 @@ import Choices from '../objects/choices';
 
 export interface IListPrompt
   extends Pick<
-    IBasePrompt<string>,
+    IBasePrompt<string | number>,
     'name' | 'message' | 'choices' | 'default' | 'filter'
   > {
   type: 'list';
 }
 
-export default class ListPrompt extends Base<string> {
-  public firstRender: boolean
-  public selected: number
-  public paginator: Paginator
-  constructor(questions: any[], rl: any, answers: any[]) {
+type ListItem = Omit<IListPrompt, 'type'> & { type?: 'list' };
+
+export default class ListPrompt extends Base<string | number> {
+  public firstRender: boolean;
+
+  public selected: number;
+
+  public paginator: Paginator;
+
+  constructor(
+    questions: ListItem | ListItem[],
+    rl?: any,
+    answers?: Record<keyof typeof questions, any>
+  ) {
     super(questions, rl, answers);
 
     if (!this.opt.choices) {
@@ -41,7 +50,10 @@ export default class ListPrompt extends Base<string> {
     if (isNumber(def) && def >= 0 && def < (this.opt.choices as Choices).realLength) {
       this.selected = def;
     } else if (!isNumber(def) && def != null) {
-      let index = findIndex((this.opt.choices as Choices).realChoices, ({ value }) => value === def);
+      let index = findIndex(
+        (this.opt.choices as Choices).realChoices,
+        ({ value }) => value === def
+      );
       this.selected = Math.max(index, 0);
     }
 
@@ -94,9 +106,11 @@ export default class ListPrompt extends Base<string> {
 
     // Render choices or answer depending on the state
     if (this.status === 'answered') {
-      message += chalk.cyan((this.opt.choices as Choices).getChoice(this.selected)!.short!);
+      message += chalk.cyan(
+        (this.opt.choices as Choices).getChoice(this.selected)!.short!
+      );
     } else {
-      var choicesStr = listRender((this.opt.choices as Choices), this.selected);
+      var choicesStr = listRender(this.opt.choices as Choices, this.selected);
       var indexPosition = (this.opt.choices as Choices).indexOf(
         (this.opt.choices as Choices).getChoice(this.selected)!
       );

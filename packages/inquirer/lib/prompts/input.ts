@@ -7,16 +7,17 @@ import { map, takeUntil } from 'rxjs/operators';
 import Base, { IBasePrompt } from './base';
 import observe from '../utils/events';
 
-export interface IInputPrompt
+export interface IInputPrompt<T = string>
   extends Pick<
-    IBasePrompt<string>,
+    IBasePrompt<T>,
     'name' | 'message' | 'default' | 'filter' | 'validate' | 'transformer'
   > {
   type: 'input';
 }
 
-export default class InputPrompt extends Base<string> {
+export default class InputPrompt<T = string> extends Base<T> {
   public answer: any;
+
   /**
    * Start the Inquiry session
    * @param cb Callback when prompt is done
@@ -46,17 +47,12 @@ export default class InputPrompt extends Base<string> {
    * Render the prompt to screen
    */
   public render(error?: Error) {
-    var bottomContent = '';
-    var appendContent = '';
-    var message = this.getQuestion();
-    var transformer = this.opt.transformer;
-    var isFinal = this.status === 'answered';
+    let bottomContent = '';
+    let message = this.getQuestion();
+    const transformer = this.opt.transformer;
+    let isFinal = this.status === 'answered';
 
-    if (isFinal) {
-      appendContent = this.answer;
-    } else {
-      appendContent = this.rl.line;
-    }
+    const appendContent = isFinal ? this.answer : this.rl.line;
 
     if (transformer) {
       message += transformer(appendContent, this.answers, { isFinal });
