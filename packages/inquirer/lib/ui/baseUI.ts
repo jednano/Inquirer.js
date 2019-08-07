@@ -6,9 +6,14 @@ import { createInterface } from 'readline';
  * Base interface class other can inherits from
  */
 export default class UI {
-  public rl: any
-  public activePrompt: any
-  constructor(opt: any = {}) {
+  public rl: any;
+  public activePrompt: any;
+  constructor(
+    opt: {
+      input?: NodeJS.ReadStream;
+      output?: NodeJS.WriteStream;
+    } = {}
+  ) {
     // Instantiate the Readline interface
     // @Note: Don't reassign if already present (allow test to override the Stream)
     if (!this.rl) {
@@ -56,8 +61,10 @@ export default class UI {
   }
 }
 
-function setupReadlineOptions(opt: any) {
-
+function setupReadlineOptions(opt: {
+  input?: NodeJS.ReadStream;
+  output?: NodeJS.WriteStream;
+}) {
   // Default `input` to stdin
   var input = opt.input || process.stdin;
 
@@ -70,7 +77,7 @@ function setupReadlineOptions(opt: any) {
     {
       terminal: true,
       input,
-      output,
+      output
     },
     omit(opt, ['input', 'output'])
   );

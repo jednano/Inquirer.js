@@ -2,6 +2,7 @@ export { default as Separator } from './objects/separator';
 import BottomBar from './ui/bottom-bar';
 import Prompt from './ui/prompt';
 
+import { IBasePrompt } from './prompts/base';
 import list from './prompts/list';
 import input from './prompts/input';
 import number from './prompts/number';
@@ -37,54 +38,62 @@ const defaultPrompts = {
 };
 
 /**
- * Create a new self-contained prompt module.
+ * Public CLI helper interface
+ * @param questions Questions settings array
  */
-export function createPromptModule(opt?: any) {
-  /**
-   * Public CLI helper interface
-   * @param questions Questions settings array
-   */
-  function promptModule(questions: any[]) {
-    const _ui = new ui.Prompt(promptModule.prompts, opt);
-    const promise = _ui.run(questions);
+class PromptModule<T extends Record<string, any> = Record<never, never>> {
+  public prompts = { ...defaultPrompts } as typeof defaultPrompts & T;
+
+  constructor(private ui: Prompt) {}
+
+  prompt(questions: (IBasePrompt & T) | (IBasePrompt & T)[]) {
+    const promise = this.ui.run(questions);
 
     // Monkey patch the UI on the promise object so
     // that it remains publicly accessible.
-    promise.ui = _ui;
+    (promise as any).ui = this.ui;
 
-    return promise;
+    return promise as Promise<any> & { ui: Prompt };
   }
-
-  promptModule.prompts = { ...defaultPrompts } as Record<string, any>;
 
   /**
    * Register a prompt type
    * @param name Prompt type name
    * @param prompt Prompt constructor
    */
-  promptModule.registerPrompt = function(name: string, prompt: any) {
-    promptModule.prompts[name] = prompt;
-    return this;
-  };
+  public registerPrompt<U extends string, V>(
+    name: U,
+    PromptClass: V
+  ): PromptModule<Record<U, V>> {
+    (this.prompts as any)[name] = PromptClass;
+    return this
+  }
 
-  /**
-   * Register the defaults provider prompts
-   */
-  promptModule.restoreDefaultPrompts = function() {
-    promptModule.prompts = {
-      ...promptModule.prompts,
+  public restoreDefaultPrompts() {
+    this.prompts = {
+      ...this.prompts,
       ...defaultPrompts
     };
-  };
+  }
+}
 
-  return promptModule;
+/**
+ * Create a new self-contained prompt module.
+ */
+export function createPromptModule(
+  opt: {
+    input?: NodeJS.ReadStream;
+    output?: NodeJS.WriteStream;
+  } = {}
+) {
+  return new PromptModule(new ui.Prompt({ ...defaultPrompts }, opt));
 }
 
 export const prompt = createPromptModule();
 
 // Expose helper functions on the top level for easiest usage by common users
-export function registerPrompt(name: string, prompt: any) {
-  prompt.registerPrompt(name, prompt);
+export function registerPrompt<T extends string, U>(name: T, PromptClass: U) {
+  return prompt.registerPrompt(name, PromptClass);
 }
 
 export function restoreDefaultPrompts() {

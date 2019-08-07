@@ -1,40 +1,47 @@
-import { isPlainObject, isArray, set, clone, isFunction } from 'lodash';
+import { isArray, set, clone, isFunction } from 'lodash';
 import { defer, empty, from, of } from 'rxjs';
 import { concatMap, filter, publish, reduce } from 'rxjs/operators';
 import runAsync = require('run-async');
 import { fetchAsyncQuestionProperty } from '../utils/utils';
 import Base from './baseUI';
+import { IBasePrompt } from '../prompts/base';
 
 /**
  * Base interface class other can inherits from
  */
 export default class PromptUI extends Base {
   public answers: any;
-  public process: any
-  constructor(public prompts: Record<string, any>, opt: any) {
+  public process?: ReturnType<typeof from>;
+  constructor(
+    public prompts: Record<string, any>,
+    opt: {
+      input?: NodeJS.ReadStream;
+      output?: NodeJS.WriteStream;
+    }
+  ) {
     super(opt);
   }
 
-  public run(questions: any[]) {
+  public run(questions: IBasePrompt | IBasePrompt[]) {
     // Keep global reference to the answers
     this.answers = {};
 
     // Make sure questions is an array.
-    if (isPlainObject(questions)) {
+    if (!isArray(questions)) {
       questions = [questions];
     }
 
     // Create an observable, unless we received one as parameter.
     // Note: As this is a public interface, we cannot do an instanceof check as we won't
     // be using the exact same object in memory.
-    var obs = isArray(questions) ? from(questions) : questions;
+    const obs = from(questions)
 
     this.process = obs.pipe(
       concatMap(this.processQuestion.bind(this)),
       publish() // Creates a hot Observable. It prevents duplicating prompts.
     );
 
-    this.process.connect();
+    (this.process as any).connect();
 
     return this.process
       .pipe(

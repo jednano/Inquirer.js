@@ -11,7 +11,7 @@ import Choices, { ChoicesList } from '../objects/choices';
 import ScreenManager from '../utils/screen-manager';
 import { Observable } from 'rxjs/internal/Observable';
 
-export interface IBasePrompt<T, TChoices extends Choices = Choices> {
+export interface IBasePrompt<T = any, TChoices extends Choices = Choices> {
   /**
    * @default 'input'
    */
@@ -61,7 +61,7 @@ export interface IBasePrompt<T, TChoices extends Choices = Choices> {
   checked?: boolean;
 }
 
-export default class Prompt<T, TChoices extends Choices = Choices> {
+export default class Prompt<T = any, TChoices extends Choices = Choices> {
   protected opt: IBasePrompt<T, TChoices>;
 
   public rl: any;
