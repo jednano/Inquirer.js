@@ -11,12 +11,12 @@ import observe from '../utils/events';
 import Paginator from '../utils/paginator';
 import Choices from '../objects/choices';
 
-export interface IExpandPrompt
+export interface ExpandQuestion
   extends Pick<IBasePrompt<number | string>, 'name' | 'message' | 'choices' | 'default'> {
   type: 'expand';
 }
 
-type IExpandQuestion = Omit<IExpandPrompt, 'type'> & { type?: 'expand' };
+type IExpandQuestion = Omit<ExpandQuestion, 'type'> & { type?: 'expand' };
 
 type TChoices = Choices<{
   /**

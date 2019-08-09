@@ -10,7 +10,7 @@ import observe from '../utils/events';
 import Paginator from '../utils/paginator';
 import Choices from '../objects/choices';
 
-export interface IRawListPrompt
+export interface RawListQuestion
   extends Pick<
     IBasePrompt<string | number>,
     'name' | 'message' | 'choices' | 'default' | 'filter'
@@ -18,7 +18,7 @@ export interface IRawListPrompt
   type: 'rawlist';
 }
 
-type RawListItem = Omit<IRawListPrompt, 'type'>;
+type RawListItem = Omit<RawListQuestion, 'type'>;
 
 export default class RawList extends Base<string | number> {
   public selected?: number;

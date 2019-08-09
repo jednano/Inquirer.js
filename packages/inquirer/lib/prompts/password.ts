@@ -18,7 +18,7 @@ function mask(input: any, maskChar?: string | true) {
   return new Array(input.length + 1).join(maskChar);
 }
 
-export interface IPasswordPrompt
+export interface PasswordQuestion
   extends Pick<
     IBasePrompt<string>,
     'name' | 'message' | 'mask' | 'default' | 'filter' | 'validate'

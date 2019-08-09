@@ -13,7 +13,7 @@ import observe from '../utils/events';
 import Paginator from '../utils/paginator';
 import Choices from '../objects/choices';
 
-export interface IListPrompt
+export interface ListQuestion
   extends Pick<
     IBasePrompt<string | number>,
     'name' | 'message' | 'choices' | 'default' | 'filter'
@@ -21,7 +21,7 @@ export interface IListPrompt
   type: 'list';
 }
 
-type ListItem = Omit<IListPrompt, 'type'> & { type?: 'list' };
+type ListItem = Omit<ListQuestion, 'type'> & { type?: 'list' };
 
 export default class ListPrompt extends Base<string | number> {
   public firstRender: boolean;

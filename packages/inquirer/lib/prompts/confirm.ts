@@ -8,12 +8,12 @@ import { take, takeUntil } from 'rxjs/operators';
 import Base, { IBasePrompt } from './base';
 import observe from '../utils/events';
 
-export interface IConfirmPrompt
+export interface ConfirmQuestion
   extends Pick<IBasePrompt<boolean>, 'name' | 'message' | 'default'> {
   type: 'confirm';
 }
 
-export type ConfirmQuestion = Omit<IConfirmPrompt, 'type'> & { type?: 'confirm' };
+export type ConfirmQuestion = Omit<ConfirmQuestion, 'type'> & { type?: 'confirm' };
 
 export default class ConfirmPrompt extends Base<boolean> {
   constructor(

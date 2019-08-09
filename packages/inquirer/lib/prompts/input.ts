@@ -7,12 +7,12 @@ import { map, takeUntil } from 'rxjs/operators';
 import Base, { IBasePrompt } from './base';
 import observe from '../utils/events';
 
-export interface IInputPrompt<T = string>
+export interface InputQuestion<T = string>
   extends Pick<
     IBasePrompt<T>,
     'name' | 'message' | 'default' | 'filter' | 'validate' | 'transformer'
   > {
-  type: 'input';
+  type?: 'input';
 }
 
 export default class InputPrompt<T = string> extends Base<T> {

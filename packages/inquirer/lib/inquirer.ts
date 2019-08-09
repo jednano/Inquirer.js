@@ -2,23 +2,16 @@ export { default as Separator } from './objects/separator';
 import BottomBar from './ui/bottom-bar';
 import Prompt from './ui/prompt';
 
-import { IBasePrompt } from './prompts/base';
-import list from './prompts/list';
-import input from './prompts/input';
-import number from './prompts/number';
-import confirm from './prompts/confirm';
-import rawlist from './prompts/rawlist';
-import expand from './prompts/expand';
-import checkbox from './prompts/checkbox';
-import password from './prompts/password';
-import editor from './prompts/editor';
-
-/**
- * Inquirer.js
- * A collection of common interactive command line user interfaces.
- */
-
-export const prompts: Record<string, any> = {};
+import BasePrompt, { IBasePrompt } from './prompts/base';
+import list, { ListQuestion } from './prompts/list';
+import input, { InputQuestion } from './prompts/input';
+import number, { NumberQuestion } from './prompts/number';
+import confirm, { ConfirmQuestion } from './prompts/confirm';
+import rawlist, { RawListQuestion } from './prompts/rawlist';
+import expand, { ExpandQuestion } from './prompts/expand';
+import checkbox, { CheckboxQuestion } from './prompts/checkbox';
+import password, { PasswordQuestion } from './prompts/password';
+import editor, { EditorQuestion } from './prompts/editor';
 
 export const ui = {
   BottomBar,
@@ -37,16 +30,39 @@ const defaultPrompts = {
   editor
 };
 
+export type DefaultQuestions =
+  | ListQuestion
+  | InputQuestion
+  | NumberQuestion
+  | ConfirmQuestion
+  | RawListQuestion
+  | ExpandQuestion
+  | CheckboxQuestion
+  | PasswordQuestion
+  | EditorQuestion;
+
+type PromptFunction = ((...args: ConstructorParameters<typeof BasePrompt>) => void)
+
 /**
- * Public CLI helper interface
- * @param questions Questions settings array
+ * Inquirer.js
+ * A collection of common interactive command line user interfaces.
  */
-class PromptModule<T extends Record<string, any> = Record<never, never>> {
-  public prompts = { ...defaultPrompts } as typeof defaultPrompts & T;
+export default class Inquirer<
+  K extends string = never,
+  V extends IBasePrompt | PromptFunction = IBasePrompt,
+  Q = DefaultQuestions
+> {
+  public prompts = { ...defaultPrompts } as typeof defaultPrompts & Record<K, V>;
 
-  constructor(private ui: Prompt) {}
+  constructor(
+    options: {
+      input?: NodeJS.ReadStream;
+      output?: NodeJS.WriteStream;
+    } = {},
+    private ui: Prompt = new Prompt({ ...defaultPrompts }, options)
+  ) {}
 
-  prompt(questions: (IBasePrompt & T) | (IBasePrompt & T)[]) {
+  prompt(questions: Q | Q[]) {
     const promise = this.ui.run(questions);
 
     // Monkey patch the UI on the promise object so
@@ -61,12 +77,12 @@ class PromptModule<T extends Record<string, any> = Record<never, never>> {
    * @param name Prompt type name
    * @param prompt Prompt constructor
    */
-  public registerPrompt<U extends string, V>(
-    name: U,
-    PromptClass: V
-  ): PromptModule<Record<U, V>> {
-    (this.prompts as any)[name] = PromptClass;
-    return this
+  public registerPrompt<
+    RK extends string,
+    RV extends IBasePrompt<any> | PromptFunction
+  >(name: RK, prompt: RV): Inquirer<RK, RV, Q | Record<string, any>> {
+    (this.prompts as any)[name] = prompt;
+    return this as any;
   }
 
   public restoreDefaultPrompts() {
@@ -75,27 +91,4 @@ class PromptModule<T extends Record<string, any> = Record<never, never>> {
       ...defaultPrompts
     };
   }
-}
-
-/**
- * Create a new self-contained prompt module.
- */
-export function createPromptModule(
-  opt: {
-    input?: NodeJS.ReadStream;
-    output?: NodeJS.WriteStream;
-  } = {}
-) {
-  return new PromptModule(new ui.Prompt({ ...defaultPrompts }, opt));
-}
-
-export const prompt = createPromptModule();
-
-// Expose helper functions on the top level for easiest usage by common users
-export function registerPrompt<T extends string, U>(name: T, PromptClass: U) {
-  return prompt.registerPrompt(name, PromptClass);
-}
-
-export function restoreDefaultPrompts() {
-  prompt.restoreDefaultPrompts();
 }

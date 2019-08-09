@@ -5,7 +5,7 @@
 import Input from './input';
 import { IBasePrompt } from './base';
 
-export interface INumberPrompt
+export interface NumberQuestion
   extends Pick<
     IBasePrompt<number>,
     'name' | 'message' | 'default' | 'filter' | 'validate' | 'transformer'

@@ -13,7 +13,7 @@ import Paginator from '../utils/paginator';
 import Choices from '../objects/choices';
 import Separator from '../objects/separator';
 
-export interface ICheckboxPrompt
+export interface CheckboxQuestion
   extends Pick<
     IBasePrompt<any[]>,
     'name' | 'message' | 'choices' | 'filter' | 'validate' | 'default' | 'checked'
@@ -22,7 +22,7 @@ export interface ICheckboxPrompt
 }
 
 export type CheckboxItem =
-  | (Omit<ICheckboxPrompt, 'type' | 'message'> & { type?: 'checkbox' })
+  | (Omit<CheckboxQuestion, 'type' | 'message'> & { type?: 'checkbox' })
   | Separator;
 
 export default class CheckboxPrompt extends Base<any[]> {

@@ -8,7 +8,7 @@ import Base, { IBasePrompt } from './base';
 import observe from '../utils/events';
 import { Subject, Subscription } from 'rxjs';
 
-export interface IEditorPrompt
+export interface EditorQuestion
   extends Pick<
     IBasePrompt<string>,
     'name' | 'message' | 'default' | 'filter' | 'validate'

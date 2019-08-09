@@ -6,27 +6,20 @@ import { expect } from 'chai';
 import { stub, spy as _spy, assert } from 'sinon';
 import { noop } from 'lodash';
 import { Observable } from 'rxjs';
-import {
-  createPromptModule,
-  registerPrompt,
-  prompt as _prompt,
-  restoreDefaultPrompts
-} from '../../lib/inquirer';
+import Inquirer from '../../lib/inquirer';
 import { autosubmit } from '../helpers/events';
 
 interface Context {
-  prompt: ReturnType<typeof createPromptModule>;
+  inq: Inquirer;
 }
 
 describe('inquirer.prompt', function() {
   beforeEach(function(this: Context) {
-    this.prompt = createPromptModule();
+    this.inq = new Inquirer();
   });
 
-  it("should close and create a new readline instances each time it's called", function(this: Context) {
-    var ctx = this;
-
-    var promise = this.prompt({
+  it("should close and create a new readline instances each time it's called", async function(this: Context) {
+    const promise = this.inq.prompt({
       type: 'confirm',
       name: 'q1',
       message: 'message'
@@ -35,30 +28,24 @@ describe('inquirer.prompt', function() {
     const rl1 = promise.ui.rl;
     rl1.emit('line');
 
-    return promise.then(() => {
-      expect(rl1.close.called).to.equal(true);
-      expect(rl1.output.end.called).to.equal(true);
-
-      var promise2 = ctx.prompt({
-        type: 'confirm',
-        name: 'q1',
-        message: 'message'
-      });
-
-      const rl2 = promise2.ui.rl;
-      rl2.emit('line');
-
-      return promise2.then(() => {
-        expect(rl2.close.called).to.equal(true);
-        expect(rl2.output.end.called).to.equal(true);
-
-        expect(rl1).to.not.equal(rl2);
-      });
+    await promise;
+    expect(rl1.close.called).to.equal(true);
+    expect(rl1.output.end.called).to.equal(true);
+    const promise2 = this.inq.prompt({
+      type: 'confirm',
+      name: 'q1',
+      message: 'message'
     });
+    const rl2 = promise2.ui.rl;
+    rl2.emit('line');
+    await promise2;
+    expect(rl2.close.called).to.equal(true);
+    expect(rl2.output.end.called).to.equal(true);
+    expect(rl1).to.not.equal(rl2);
   });
 
-  it('should take a prompts array and return answers', function(this: Context) {
-    const promise = this.prompt([
+  it('should take a prompts array and return answers', async function(this: Context) {
+    const promise = this.inq.prompt([
       {
         type: 'confirm',
         name: 'q1',
@@ -73,14 +60,13 @@ describe('inquirer.prompt', function() {
     ]);
     autosubmit(promise.ui);
 
-    return promise.then(answers => {
-      expect(answers.q1).to.equal(true);
-      expect(answers.q2).to.equal(false);
-    });
+    const answers = await promise;
+    expect(answers.q1).to.equal(true);
+    expect(answers.q2).to.equal(false);
   });
 
-  it('should take a prompts array with nested names', function(this: Context) {
-    const promise = this.prompt([
+  it('should take a prompts array with nested names', async function(this: Context) {
+    const promise = this.inq.prompt([
       {
         type: 'confirm',
         name: 'foo.bar.q1',
@@ -95,20 +81,19 @@ describe('inquirer.prompt', function() {
     ]);
     autosubmit(promise.ui);
 
-    return promise.then(answers => {
-      expect(answers).to.deep.equal({
-        foo: {
-          bar: {
-            q1: true
-          },
-          q2: false
-        }
-      });
+    const answers = await promise;
+    expect(answers).to.deep.equal({
+      foo: {
+        bar: {
+          q1: true
+        },
+        q2: false
+      }
     });
   });
 
-  it('should take a single prompt and return answer', function(this: Context) {
-    const promise = this.prompt({
+  it('should take a single prompt and return answer', async function(this: Context) {
+    const promise = this.inq.prompt({
       type: 'input',
       name: 'q1',
       message: 'message',
@@ -116,27 +101,19 @@ describe('inquirer.prompt', function() {
     });
 
     promise.ui.rl.emit('line');
-    return promise.then(answers => {
-      expect(answers.q1).to.equal('bar');
-    });
+    const answers = await promise;
+    expect(answers.q1).to.equal('bar');
   });
 
-  it('should parse `message` if passed as a function', function(this: Context) {
-    var stubMessage = 'foo';
-    this.prompt.registerPrompt('stub', function(params) {
-      this.opt = {
-        when: () => true
-      };
-      this.run = stub().returns(Promise.resolve());
-      expect(params.message).to.equal(stubMessage);
-    });
+  it('should parse `message` if passed as a function', async function(this: Context) {
+    const stubMessage = 'foo';
 
     const msgFunc = function(answers) {
       expect(answers.name1).to.equal('bar');
       return stubMessage;
     };
 
-    var promise = this.prompt([
+    const prompts = [
       {
         type: 'input',
         name: 'name1',
@@ -144,31 +121,36 @@ describe('inquirer.prompt', function() {
         default: 'bar'
       },
       {
-        type: 'stub',
+        type: 'stub' as 'stub',
         name: 'name',
         message: msgFunc
       }
-    ]);
+    ];
+
+    const promise = this.inq.registerPrompt('stub', function(params) {
+      this.opt = {
+        when: () => true
+      };
+      this.run = stub().returns(Promise.resolve());
+      expect(params.message).to.equal(stubMessage);
+    }).prompt(prompts)
     promise.ui.rl.emit('line');
     promise.ui.rl.emit('line');
-    return promise.then(() => {
-      // Ensure we're not overwriting original prompt values.
-      expect(prompts[1].message).to.equal(msgFunc);
-    });
+    await promise;
+    // Ensure we're not overwriting original prompt values.
+    expect(prompts[1].message).to.equal(msgFunc);
   });
 
   it('should run asynchronous `message`', function(this: Context, done) {
-    var stubMessage = 'foo';
-    this.prompt.registerPrompt('stub', function(params) {
+    const stubMessage = 'foo';
+    const promise = this.inq.registerPrompt('stub', function(params) {
       this.opt = {
         when: () => true
       };
       this.run = stub().returns(Promise.resolve());
       expect(params.message).to.equal(stubMessage);
       done();
-    });
-
-    var promise = this.prompt([
+    }).prompt([
       {
         type: 'input',
         name: 'name1',
@@ -180,7 +162,7 @@ describe('inquirer.prompt', function() {
         name: 'name',
         message: function(answers) {
           expect(answers.name1).to.equal('bar');
-          var goOn = this.async();
+          const goOn = this.async();
           setTimeout(() => {
             goOn(null, stubMessage);
           }, 0);
@@ -191,17 +173,15 @@ describe('inquirer.prompt', function() {
   });
 
   it('should parse `default` if passed as a function', function(this: Context, done) {
-    var stubDefault = 'foo';
-    this.prompt.registerPrompt('stub', function(params) {
+    const stubDefault = 'foo';
+    const promise = this.inq.registerPrompt('stub', function(params) {
       this.opt = {
         when: () => true
       };
       this.run = stub().returns(Promise.resolve());
       expect(params.default).to.equal(stubDefault);
       done();
-    });
-
-    const promise = this.prompt([
+    }).prompt([
       {
         type: 'input',
         name: 'name1',
@@ -222,10 +202,9 @@ describe('inquirer.prompt', function() {
   });
 
   it('should run asynchronous `default`', function() {
-    var goesInDefault = false;
-    var input2Default = 'foo';
-    var promise;
-    var prompts = [
+    let goesInDefault = false;
+    const input2Default = 'foo';
+    let promise = this.prompt([
       {
         type: 'input',
         name: 'name1',
@@ -239,7 +218,7 @@ describe('inquirer.prompt', function() {
         default: function(answers) {
           goesInDefault = true;
           expect(answers.name1).to.equal('bar');
-          var goOn = this.async();
+          const goOn = this.async();
           setTimeout(() => {
             goOn(null, input2Default);
           }, 0);
@@ -248,9 +227,7 @@ describe('inquirer.prompt', function() {
           }, 10);
         }
       }
-    ];
-
-    promise = this.prompt(prompts);
+    ]);
     promise.ui.rl.emit('line');
 
     return promise.then(answers => {
@@ -260,13 +237,11 @@ describe('inquirer.prompt', function() {
   });
 
   it('should pass previous answers to the prompt constructor', function(this: Context, done) {
-    const promptWithStub = this.prompt.registerPrompt('stub', function(_params, _rl, answers) {
+    const promise = this.inq.registerPrompt('stub', function(_params, _rl, answers) {
       this.run = stub().returns(Promise.resolve());
       expect(answers.name1).to.equal('bar');
       done();
-    });
-
-    var promise = promptWithStub([
+    }).prompt([
       {
         type: 'input',
         name: 'name1',
@@ -283,17 +258,15 @@ describe('inquirer.prompt', function() {
   });
 
   it('should parse `choices` if passed as a function', function(this: Context, done) {
-    var stubChoices = ['foo', 'bar'];
-    this.prompt.registerPrompt('stub', function({ choices }) {
+    const stubChoices = ['foo', 'bar'];
+    const promise = this.inq.registerPrompt('stub', function({ choices }) {
       this.run = stub().returns(Promise.resolve());
       this.opt = {
         when: () => true
       };
       expect(choices).to.equal(stubChoices);
       done();
-    });
-
-    var promise = this.prompt([
+    }).prompt([
       {
         type: 'input',
         name: 'name1',
@@ -314,7 +287,7 @@ describe('inquirer.prompt', function() {
   });
 
   it('should returns a promise', function(this: Context, done) {
-    var promise = this.prompt({
+    const promise = this.inq.prompt({
       type: 'input',
       name: 'q1',
       message: 'message',
@@ -329,7 +302,7 @@ describe('inquirer.prompt', function() {
   });
 
   it('should expose the Reactive interface', function(this: Context, done) {
-    const promise = this.prompt([
+    const promise = this.inq.prompt([
       {
         type: 'input',
         name: 'name1',
@@ -343,7 +316,7 @@ describe('inquirer.prompt', function() {
         default: 'doe'
       }
     ]);
-    var spy = _spy();
+    const spy = _spy();
     promise.ui.process.subscribe(
       spy,
       function() {},
@@ -358,14 +331,13 @@ describe('inquirer.prompt', function() {
   });
 
   it('should expose the UI', function(this: Context, done) {
-    var promise = this.prompt([]);
+    const promise = this.inq.prompt([]);
     expect(promise.ui.answers).to.be.an('object');
     done();
   });
 
   it('takes an Observable as question', function() {
-    var promise;
-    var prompts = Observable.create(function(obs) {
+    const promise = this.prompt(Observable.create(function(obs) {
       obs.next({
         type: 'confirm',
         name: 'q1',
@@ -381,9 +353,7 @@ describe('inquirer.prompt', function() {
         obs.complete();
         promise.ui.rl.emit('line');
       }, 30);
-    });
-
-    promise = this.prompt(prompts);
+    }));
     promise.ui.rl.emit('line');
 
     return promise.then(answers => {
@@ -394,7 +364,7 @@ describe('inquirer.prompt', function() {
 
   describe('hierarchical mode (`when`)', function() {
     it('should pass current answers to `when`', function() {
-      var prompts = [
+      const promise = this.prompt([
         {
           type: 'confirm',
           name: 'q1',
@@ -408,17 +378,15 @@ describe('inquirer.prompt', function() {
             expect(answers.q1).to.equal(true);
           }
         }
-      ];
-
-      var promise = this.prompt(prompts);
+      ]);
 
       autosubmit(promise.ui);
       return promise;
     });
 
     it('should run prompt if `when` returns true', function() {
-      var goesInWhen = false;
-      var prompts = [
+      let goesInWhen = false;
+      const promise = this.prompt([
         {
           type: 'confirm',
           name: 'q1',
@@ -434,9 +402,7 @@ describe('inquirer.prompt', function() {
             return true;
           }
         }
-      ];
-
-      var promise = this.prompt(prompts);
+      ]);
       autosubmit(promise.ui);
 
       return promise.then(answers => {
@@ -446,7 +412,7 @@ describe('inquirer.prompt', function() {
     });
 
     it('should run prompt if `when` is true', function() {
-      var prompts = [
+      const promise = this.prompt([
         {
           type: 'confirm',
           name: 'q1',
@@ -459,9 +425,7 @@ describe('inquirer.prompt', function() {
           default: 'bar-var',
           when: true
         }
-      ];
-
-      var promise = this.prompt(prompts);
+      ]);
       autosubmit(promise.ui);
 
       return promise.then(answers => {
@@ -470,8 +434,8 @@ describe('inquirer.prompt', function() {
     });
 
     it('should not run prompt if `when` returns false', function() {
-      var goesInWhen = false;
-      var prompts = [
+      let goesInWhen = false;
+      const promise = this.prompt([
         {
           type: 'confirm',
           name: 'q1',
@@ -492,9 +456,7 @@ describe('inquirer.prompt', function() {
           message: 'message',
           default: 'foo'
         }
-      ];
-
-      var promise = this.prompt(prompts);
+      ]);
       autosubmit(promise.ui);
 
       return promise.then(answers => {
@@ -506,7 +468,7 @@ describe('inquirer.prompt', function() {
     });
 
     it('should not run prompt if `when` is false', function() {
-      var prompts = [
+      const promise = this.prompt([
         {
           type: 'confirm',
           name: 'q1',
@@ -524,9 +486,7 @@ describe('inquirer.prompt', function() {
           message: 'message',
           default: 'foo'
         }
-      ];
-
-      var promise = this.prompt(prompts);
+      ]);
       autosubmit(promise.ui);
 
       return promise.then(answers => {
@@ -537,9 +497,8 @@ describe('inquirer.prompt', function() {
     });
 
     it('should run asynchronous `when`', function() {
-      var promise;
-      var goesInWhen = false;
-      var prompts = [
+      let goesInWhen = false;
+      const promise = this.prompt([
         {
           type: 'confirm',
           name: 'q1',
@@ -552,7 +511,7 @@ describe('inquirer.prompt', function() {
           default: 'foo-bar',
           when: function() {
             goesInWhen = true;
-            var goOn = this.async();
+            const goOn = this.async();
             setTimeout(() => {
               goOn(null, true);
             }, 0);
@@ -561,9 +520,7 @@ describe('inquirer.prompt', function() {
             }, 10);
           }
         }
-      ];
-
-      promise = this.prompt(prompts);
+      ]);
       autosubmit(promise.ui);
 
       return promise.then(answers => {
@@ -573,7 +530,7 @@ describe('inquirer.prompt', function() {
     });
 
     it('should get the value which set in `when` on returns false', function() {
-      var prompts = [
+      const promise = this.prompt([
         {
           name: 'q',
           message: 'message',
@@ -582,9 +539,7 @@ describe('inquirer.prompt', function() {
             return false;
           }
         }
-      ];
-
-      var promise = this.prompt(prompts);
+      ]);
       autosubmit(promise.ui);
 
       return promise.then(answers => {
@@ -594,49 +549,40 @@ describe('inquirer.prompt', function() {
   });
 
   describe('#registerPrompt()', function() {
-    it('register new prompt types', function(this: Context, done) {
-      var questions = [{ type: 'foo', message: 'something' }];
-      registerPrompt('foo', function(question, _rl, answers) {
+    it('registers new prompt types', function(this: Context, done) {
+      const questions = [{ type: 'foo', message: 'something' }];
+      this.inq.registerPrompt('foo', function(question, _rl, answers) {
         expect(question).to.eql(questions[0]);
         expect(answers).to.eql({});
         this.run = stub().returns(Promise.resolve());
         done();
-      });
-
-      _prompt(questions);
+      }).prompt(questions);
     });
 
     it('overwrite default prompt types', function(this: Context, done) {
-      var questions = [{ type: 'confirm', message: 'something' }];
-      registerPrompt('confirm', function() {
+      const questions = [{ type: 'confirm', message: 'something' }];
+      this.inq.registerPrompt('confirm', function() {
         this.run = stub().returns(Promise.resolve());
         done();
-      });
-
-      _prompt(questions);
-      restoreDefaultPrompts();
+      }).prompt(questions);
     });
   });
 
   describe('#restoreDefaultPrompts()', function() {
-    it('restore default prompts', function() {
-      var ConfirmPrompt = _prompt.prompts.confirm;
-      registerPrompt('confirm', noop);
-      restoreDefaultPrompts();
-      expect(ConfirmPrompt).to.equal(_prompt.prompts.confirm);
+    it('restore default prompts', function(this: Context) {
+      const ConfirmPrompt = this.inq.prompts.confirm;
+      this.inq.registerPrompt('confirm', noop);
+      this.inq.restoreDefaultPrompts();
+      expect(ConfirmPrompt).to.equal(this.inq.prompts.confirm);
     });
   });
 
   // See: https://github.com/SBoudrias/Inquirer.js/pull/326
-  it('does not throw exception if cli-width reports width of 0', function() {
-    var original = process.stdout.getWindowSize;
-    process.stdout.getWindowSize = function() {
-      return [0];
-    };
+  it('does not throw exception if cli-width reports width of 0', async function(this: Context) {
+    const original = (process.stdout as any).getWindowSize;
+    (process.stdout as any).getWindowSize = () => ([0]);
 
-    var prompt = createPromptModule();
-
-    var promise = prompt([
+    const promise = this.inq.prompt([
       {
         type: 'confirm',
         name: 'q1',
@@ -645,9 +591,8 @@ describe('inquirer.prompt', function() {
     ]);
     promise.ui.rl.emit('line');
 
-    return promise.then(answers => {
-      process.stdout.getWindowSize = original;
-      expect(answers.q1).to.equal(true);
-    });
+    const answers = await promise;
+    (process.stdout as any).getWindowSize = original;
+    expect(answers.q1).to.equal(true);
   });
 });

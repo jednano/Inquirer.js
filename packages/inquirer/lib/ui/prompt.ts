@@ -22,7 +22,7 @@ export default class PromptUI extends Base {
     super(opt);
   }
 
-  public run(questions: IBasePrompt | IBasePrompt[]) {
+  public run<Q = IBasePrompt>(questions: Q | Q[]) {
     // Keep global reference to the answers
     this.answers = {};
 
@@ -34,7 +34,7 @@ export default class PromptUI extends Base {
     // Create an observable, unless we received one as parameter.
     // Note: As this is a public interface, we cannot do an instanceof check as we won't
     // be using the exact same object in memory.
-    const obs = from(questions)
+    const obs = from(questions);
 
     this.process = obs.pipe(
       concatMap(this.processQuestion.bind(this)),
