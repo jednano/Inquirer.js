@@ -4,9 +4,9 @@
 
 import { expect } from 'chai';
 import { each, clone } from 'lodash';
-import fixtures from '../helpers/fixtures';
+import * as fixtures from '../helpers/fixtures';
 import ReadlineStub from '../helpers/readline';
-import { createPromptModule, Separator, prompt as _prompt } from '../../lib/inquirer';
+import Inquirer, { prompts as _prompts, Separator } from '../../lib/inquirer';
 import { autosubmit } from '../helpers/events';
 
 // Define prompts and their public API
@@ -41,14 +41,18 @@ var prompts = [
   }
 ];
 
+interface Context {
+  fixture: any;
+  Prompt: any;
+  rl: ReadlineStub;
+}
+
 // Define tests
 var tests = {
   filter: function() {
     describe('filter API', function() {
-      it('should filter the user input', function(done) {
-        this.fixture.filter = function() {
-          return 'pass';
-        };
+      it('should filter the user input', function(this: Context, done) {
+        this.fixture.filter = () => 'pass';
 
         var prompt = new this.Prompt(this.fixture, this.rl);
         prompt.run().then(answer => {
@@ -59,7 +63,7 @@ var tests = {
         this.rl.emit('line', '');
       });
 
-      it('should allow filter function to be asynchronous', function(done) {
+      it('should allow filter function to be asynchronous', function(this: Context, done) {
         this.fixture.filter = function() {
           var done = this.async();
           setTimeout(() => {
@@ -76,7 +80,7 @@ var tests = {
         this.rl.emit('line', '');
       });
 
-      it('should handle errors produced in async filters', function() {
+      it('should handle errors produced in async filters', function(this: Context) {
         var called = 0;
         var rl = this.rl;
 
@@ -99,9 +103,10 @@ var tests = {
         return promise;
       });
 
-      it('should pass previous answers to the prompt filter function', function() {
-        var prompt = createPromptModule();
-        var questions = [
+      it('should pass previous answers to the prompt filter function', async function(this: Context) {
+        var inq = new Inquirer();
+
+        var promise = inq.prompt([
           {
             type: 'confirm',
             name: 'q1',
@@ -116,23 +121,20 @@ var tests = {
               return input;
             },
             default: false
-          }
-        ];
-
-        var promise = prompt(questions);
+          } as any
+        ]);
         autosubmit(promise.ui);
 
-        return promise.then(answers => {
-          expect(answers.q1).to.equal(true);
-          expect(answers.q2).to.equal(false);
-        });
+        const answers = await promise;
+        expect(answers.q1).to.equal(true);
+        expect(answers.q2).to.equal(false);
       });
     });
   },
 
   validate: function() {
     describe('validate API', function() {
-      it('should reject input if boolean false is returned', function() {
+      it('should reject input if boolean false is returned', function(this: Context) {
         var called = 0;
 
         this.fixture.validate = () => {
@@ -153,7 +155,7 @@ var tests = {
         return promise;
       });
 
-      it('should reject input if a string is returned', function(done) {
+      it('should reject input if a string is returned', function(this: Context, done) {
         var self = this;
         var called = 0;
         var errorMessage = 'uh oh, error!';
@@ -176,7 +178,7 @@ var tests = {
         this.rl.emit('line');
       });
 
-      it('should reject input if a Promise is returned which rejects', function(done) {
+      it('should reject input if a Promise is returned which rejects', function(this: Context, done) {
         var self = this;
         var called = 0;
         var errorMessage = 'uh oh, error!';
@@ -199,7 +201,7 @@ var tests = {
         this.rl.emit('line');
       });
 
-      it('should accept input if boolean true is returned', function() {
+      it('should accept input if boolean true is returned', function(this: Context) {
         var called = 0;
 
         this.fixture.validate = function() {
@@ -216,7 +218,7 @@ var tests = {
         return promise;
       });
 
-      it('should allow validate function to be asynchronous', function() {
+      it('should allow validate function to be asynchronous', function(this: Context) {
         var self = this;
         var called = 0;
 
@@ -242,7 +244,7 @@ var tests = {
         return promise;
       });
 
-      it('should allow validate function to return a Promise', function() {
+      it('should allow validate function to return a Promise', function(this: Context) {
         this.fixture.validate = function() {
           return Promise.resolve(true);
         };
@@ -254,9 +256,10 @@ var tests = {
         return promise;
       });
 
-      it('should pass previous answers to the prompt validation function', function() {
-        var prompt = createPromptModule();
-        var questions = [
+      it('should pass previous answers to the prompt validation function', async function(this: Context) {
+        const inq = new Inquirer();
+
+        const promise = inq.prompt([
           {
             type: 'confirm',
             name: 'q1',
@@ -271,23 +274,20 @@ var tests = {
               return true;
             },
             default: false
-          }
-        ];
-
-        var promise = prompt(questions);
+          } as any,
+        ]);
         autosubmit(promise.ui);
 
-        return promise.then(answers => {
-          expect(answers.q1).to.equal(true);
-          expect(answers.q2).to.equal(false);
-        });
+        const answers = await promise;
+        expect(answers.q1).to.equal(true);
+        expect(answers.q2).to.equal(false);
       });
     });
   },
 
   default: function() {
     describe('default API', function() {
-      it('should allow a default value', function(done) {
+      it('should allow a default value', function(this: Context, done) {
         this.fixture.default = 'pass';
 
         var prompt = new this.Prompt(this.fixture, this.rl);
@@ -300,7 +300,7 @@ var tests = {
         this.rl.emit('line', '');
       });
 
-      it('should allow a falsy default value', function(done) {
+      it('should allow a falsy default value', function(this: Context, done) {
         this.fixture.default = 0;
 
         var prompt = new this.Prompt(this.fixture, this.rl);
@@ -317,7 +317,7 @@ var tests = {
 
   message: function() {
     describe('message API', function() {
-      it('should print message on screen', function() {
+      it('should print message on screen', function(this: Context) {
         this.fixture.message = 'Foo bar bar foo bar';
 
         var prompt = new this.Prompt(this.fixture, this.rl);
@@ -339,7 +339,7 @@ var tests = {
 
   choices: function() {
     describe('choices API', function() {
-      it('should print choices to screen', function() {
+      it('should print choices to screen', function(this: Context) {
         var prompt = new this.Prompt(this.fixture, this.rl);
         var choices = prompt.opt.choices;
 
@@ -354,7 +354,7 @@ var tests = {
 
   requiredValues: function() {
     describe('Missing value', function() {
-      it('`name` should throw', function() {
+      it('`name` should throw', function(this: Context) {
         expect(() => {
           delete this.fixture.name;
           return new this.Prompt(this.fixture, this.rl);
@@ -368,9 +368,9 @@ var tests = {
 describe('Prompt public APIs', function() {
   each(prompts, function(detail) {
     describe('on ' + detail.name + ' prompt', function() {
-      beforeEach(function() {
+      beforeEach(function(this: Context) {
         this.fixture = clone(fixtures[detail.name]);
-        this.Prompt = _prompt.prompts[detail.name];
+        this.Prompt = prompts[detail.name];
         this.rl = new ReadlineStub();
       });
 

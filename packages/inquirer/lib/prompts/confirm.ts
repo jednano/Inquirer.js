@@ -13,11 +13,11 @@ export interface ConfirmQuestion
   type: 'confirm';
 }
 
-export type ConfirmQuestion = Omit<ConfirmQuestion, 'type'> & { type?: 'confirm' };
+export type ConfirmItem = Omit<ConfirmQuestion, 'type'> & { type?: 'confirm' };
 
 export default class ConfirmPrompt extends Base<boolean> {
   constructor(
-    questions: ConfirmQuestion | ConfirmQuestion[],
+    questions: ConfirmItem | ConfirmItem[],
     rl?: any,
     answers?: Record<keyof typeof questions, any>
   ) {

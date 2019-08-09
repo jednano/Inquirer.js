@@ -16,7 +16,7 @@ export interface ExpandQuestion
   type: 'expand';
 }
 
-type IExpandQuestion = Omit<ExpandQuestion, 'type'> & { type?: 'expand' };
+type ExpandItem = Omit<ExpandQuestion, 'type'> & { type?: 'expand' };
 
 type TChoices = Choices<{
   /**
@@ -37,7 +37,7 @@ export default class ExpandPrompt extends Base<number | string, TChoices> {
   public rawDefault: any;
 
   constructor(
-    questions: IExpandQuestion | IExpandQuestion[],
+    questions: ExpandItem | ExpandItem[],
     rl?: any,
     answers?: Record<keyof typeof questions, any>
   ) {

@@ -1,47 +1,47 @@
 import * as inquirer from '../../lib/inquirer';
-import { ICheckboxPrompt } from '../../lib/prompts/checkbox';
-import { IConfirmPrompt } from '../../lib/prompts/confirm';
-import { IInputPrompt } from '../../lib/prompts/input';
-import { INumberPrompt } from '../../lib/prompts/number';
-import { IPasswordPrompt } from '../../lib/prompts/password';
-import { IListPrompt } from '../../lib/prompts/list';
-import { IRawListPrompt } from '../../lib/prompts/rawlist';
-import { IExpandPrompt } from '../../lib/prompts/expand';
-import { IEditorPrompt } from '../../lib/prompts/editor';
+import { CheckboxQuestion } from '../../lib/prompts/checkbox';
+import { ConfirmQuestion } from '../../lib/prompts/confirm';
+import { InputQuestion } from '../../lib/prompts/input';
+import { NumberQuestion } from '../../lib/prompts/number';
+import { PasswordQuestion } from '../../lib/prompts/password';
+import { ListQuestion } from '../../lib/prompts/list';
+import { RawListQuestion } from '../../lib/prompts/rawlist';
+import { ExpandQuestion } from '../../lib/prompts/expand';
+import { EditorQuestion } from '../../lib/prompts/editor';
 
-export const input: Omit<IInputPrompt, 'type'> = {
+export const input: Omit<InputQuestion, 'type'> = {
   message: 'message',
   name: 'name'
 };
 
-export const number: Omit<INumberPrompt, 'type'> = {
+export const number: Omit<NumberQuestion, 'type'> = {
   message: 'message',
   name: 'name'
 };
 
-export const confirm: Omit<IConfirmPrompt, 'type'> = {
+export const confirm: Omit<ConfirmQuestion, 'type'> = {
   message: 'message',
   name: 'name'
 };
 
-export const password: Omit<IPasswordPrompt, 'type'> = {
+export const password: Omit<PasswordQuestion, 'type'> = {
   message: 'message',
   name: 'name'
 };
 
-export const list: Omit<IListPrompt, 'type'> = {
+export const list: Omit<ListQuestion, 'type'> = {
   message: 'message',
   name: 'name',
   choices: ['foo', new inquirer.Separator(), 'bar', 'bum']
 };
 
-export const rawlist: Omit<IRawListPrompt, 'type'> = {
+export const rawlist: Omit<RawListQuestion, 'type'> = {
   message: 'message',
   name: 'name',
   choices: ['foo', 'bar', new inquirer.Separator(), 'bum']
 };
 
-export const expand: Omit<IExpandPrompt, 'type'> = {
+export const expand: Omit<ExpandQuestion, 'type'> = {
   message: 'message',
   name: 'name',
   choices: [
@@ -53,13 +53,13 @@ export const expand: Omit<IExpandPrompt, 'type'> = {
   ]
 };
 
-export const checkbox: Omit<ICheckboxPrompt, 'type'> = {
+export const checkbox: Omit<CheckboxQuestion, 'type'> = {
   message: 'message',
   name: 'name',
   choices: ['choice 1', new inquirer.Separator(), 'choice 2', 'choice 3']
 };
 
-export const editor: Omit<IEditorPrompt, 'type'> = {
+export const editor: Omit<EditorQuestion, 'type'> = {
   message: 'message',
   name: 'name',
   default: 'Inquirer'

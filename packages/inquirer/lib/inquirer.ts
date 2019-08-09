@@ -18,7 +18,7 @@ export const ui = {
   Prompt
 };
 
-const defaultPrompts = {
+export const prompts = {
   list,
   input,
   number,
@@ -41,7 +41,7 @@ export type DefaultQuestions =
   | PasswordQuestion
   | EditorQuestion;
 
-type PromptFunction = ((...args: ConstructorParameters<typeof BasePrompt>) => void)
+export type PromptFunction = ((...args: ConstructorParameters<typeof BasePrompt>) => void)
 
 /**
  * Inquirer.js
@@ -52,14 +52,14 @@ export default class Inquirer<
   V extends IBasePrompt | PromptFunction = IBasePrompt,
   Q = DefaultQuestions
 > {
-  public prompts = { ...defaultPrompts } as typeof defaultPrompts & Record<K, V>;
+  public prompts = { ...prompts } as typeof prompts & Record<K, V>;
 
   constructor(
     options: {
       input?: NodeJS.ReadStream;
       output?: NodeJS.WriteStream;
     } = {},
-    private ui: Prompt = new Prompt({ ...defaultPrompts }, options)
+    private ui: Prompt = new Prompt({ ...prompts }, options)
   ) {}
 
   prompt(questions: Q | Q[]) {
@@ -88,7 +88,7 @@ export default class Inquirer<
   public restoreDefaultPrompts() {
     this.prompts = {
       ...this.prompts,
-      ...defaultPrompts
+      ...prompts
     };
   }
 }
