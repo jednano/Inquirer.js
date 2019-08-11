@@ -21,20 +21,24 @@
   },
   "devDependencies": {
     "@types/chai": "^4.1.7",
+    "@types/expect": "^1.20.4",
+    "@types/mocha": "^5.2.7",
     "@types/mockery": "^1.4.29",
     "@types/sinon": "^7.0.13",
     "@types/through": "0.0.29",
     "chai": "^4.2.0",
     "chalk-pipe": "^2.0.0",
     "cmdify": "^0.0.4",
+    "globby": "^10.0.1",
     "mocha": "^6.2.0",
     "mockery": "^2.1.0",
     "nyc": "^14.1.1",
-    "sinon": "^7.4.1"
+    "sinon": "^7.4.1",
+    "ts-mocha": "^6.0.0"
   },
   "scripts": {
     "build": "cd ../.. && tsc -p packages/inquirer/tsconfig.json",
-    "test": "nyc mocha test/**/* -r ./test/before",
+    "test": "nyc ts-node test/before.js",
     "posttest": "nyc report --reporter=text-lcov > ../../coverage/nyc-report.lcov",
     "prepublishOnly": "cp ../../README.md dist"
   },
