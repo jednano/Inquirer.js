@@ -33,7 +33,7 @@
     "sinon": "^7.4.1"
   },
   "scripts": {
-    "build": "../../node_modules/.bin/tsc",
+    "build": "cd ../.. && tsc -p packages/inquirer/tsconfig.json",
     "test": "nyc mocha test/**/* -r ./test/before",
     "posttest": "nyc report --reporter=text-lcov > ../../coverage/nyc-report.lcov",
     "prepublishOnly": "cp ../../README.md dist"
